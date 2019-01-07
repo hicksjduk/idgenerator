@@ -21,6 +21,13 @@ public class IdGeneratorTest
         expectAllocations(generator, 4, 5, 1);
         expectExceptionOnAllocate(generator);
     }
+    
+    @Test
+    public void testMaximumRange()
+    {
+        IdGenerator generator = new IdGenerator(Integer.MIN_VALUE, Integer.MAX_VALUE);
+        expectAllocations(generator, Integer.MIN_VALUE);
+    }
 
     private void expectAllocations(IdGenerator generator, int... expectedResults)
     {

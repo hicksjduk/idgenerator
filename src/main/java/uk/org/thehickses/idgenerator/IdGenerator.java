@@ -10,17 +10,15 @@ import java.util.stream.Stream;
 
 public class IdGenerator
 {
-    private final int minId;
-    private final int maxId;
+    private final Range supportedValues;
     private final SortedSet<Range> freeRanges = new TreeSet<>();
     private int lastId;
 
     public IdGenerator(int bound1, int bound2)
     {
-        this.minId = Math.min(bound1, bound2);
-        this.maxId = Math.max(bound1, bound2);
-        this.lastId = minId - 1;
-        freeRanges.add(new Range(minId, maxId));
+        this.supportedValues = new Range(Math.min(bound1, bound2), Math.max(bound1, bound2));
+        this.lastId = supportedValues.start - 1;
+        freeRanges.add(supportedValues);
     }
 
     public int allocateId() throws IllegalStateException
@@ -46,7 +44,7 @@ public class IdGenerator
 
     public void freeId(int id)
     {
-        if (id < minId || id > maxId)
+        if (!supportedValues.contains(id))
             return;
         Range freedRange = new Range(id);
         BiFunction<SortedSet<Range>, Function<SortedSet<Range>, Range>, Range> getIfNotEmpty = (set,
@@ -81,10 +79,10 @@ public class IdGenerator
             this(number, number);
         }
 
-        public Range(int bound1, int bound2)
+        public Range(int start, int end)
         {
-            this.start = Math.min(bound1, bound2);
-            this.end = Math.max(bound1, bound2);
+            this.start = start;
+            this.end = end;
         }
 
         public boolean contains(int number)

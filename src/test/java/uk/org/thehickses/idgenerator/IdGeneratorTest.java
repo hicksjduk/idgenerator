@@ -14,6 +14,18 @@ public class IdGeneratorTest
     {
         IdGenerator generator = new IdGenerator(5, 1);
         IntStream.rangeClosed(1, 5).forEach(i -> assertThat(generator.allocateId()).isEqualTo(i));
+        expectExceptionOnAllocate(generator);
+        IntStream.of(3, 5, 4, 0).forEach(generator::freeId);
+        assertThat(generator.allocateId()).isEqualTo(3);
+        IntStream.of(4, 6, 1).forEach(generator::freeId);
+        assertThat(generator.allocateId()).isEqualTo(4);
+        assertThat(generator.allocateId()).isEqualTo(5);
+        assertThat(generator.allocateId()).isEqualTo(1);
+        expectExceptionOnAllocate(generator);
+    }
+
+    private void expectExceptionOnAllocate(IdGenerator generator)
+    {
         try
         {
             generator.allocateId();
@@ -22,11 +34,5 @@ public class IdGeneratorTest
         catch (IllegalStateException ex)
         {
         }
-        IntStream.of(3, 4, 0).forEach(generator::freeId);
-        assertThat(generator.allocateId()).isEqualTo(3);
-        IntStream.of(6, 1).forEach(generator::freeId);
-        assertThat(generator.allocateId()).isEqualTo(4);
-        assertThat(generator.allocateId()).isEqualTo(1);
     }
-
 }

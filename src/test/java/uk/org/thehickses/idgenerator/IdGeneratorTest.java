@@ -18,9 +18,7 @@ public class IdGeneratorTest
         IntStream.of(3, 5, 4, 0).forEach(generator::freeId);
         assertThat(generator.allocateId()).isEqualTo(3);
         IntStream.of(4, 6, 1).forEach(generator::freeId);
-        assertThat(generator.allocateId()).isEqualTo(4);
-        assertThat(generator.allocateId()).isEqualTo(5);
-        assertThat(generator.allocateId()).isEqualTo(1);
+        IntStream.of(4, 5, 1).forEach(i -> assertThat(generator.allocateId()).isEqualTo(i));
         expectExceptionOnAllocate(generator);
     }
 

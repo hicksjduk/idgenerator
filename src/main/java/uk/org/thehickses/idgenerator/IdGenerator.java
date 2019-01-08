@@ -8,8 +8,13 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class IdGenerator
 {
+    private static Logger LOG = LoggerFactory.getLogger(IdGenerator.class);
+
     private final Range supportedValues;
     private final SortedSet<Range> freeRanges = new TreeSet<>();
     private int lastId;
@@ -26,6 +31,7 @@ public class IdGenerator
         int answer;
         synchronized (freeRanges)
         {
+            LOG.debug("lastId = {}, freeRanges = {}", lastId, freeRanges);
             if (freeRanges.isEmpty())
                 throw new IllegalStateException("All possible IDs are allocated");
             Range range = Stream
@@ -38,6 +44,7 @@ public class IdGenerator
             freeRanges.remove(range);
             if (range.start != range.end)
                 freeRanges.add(new Range(range.start + 1, range.end));
+            LOG.debug("Allocated {}, freeRanges = {}", answer, freeRanges);
         }
         return answer;
     }

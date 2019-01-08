@@ -92,23 +92,18 @@ public class IdGenerator
 
         public boolean overlaps(Range other)
         {
-            if (other == null)
-                return false;
             return contains(other.start) || contains(other.end) || other.contains(start)
                     || other.contains(end);
         }
 
         public boolean adjoins(Range other)
         {
-            if (other == null)
-                return false;
             return start - other.end == 1 || other.start - end == 1;
         }
 
         public Range merge(Range other)
         {
-            return other == null ? this
-                    : new Range(Math.min(start, other.start), Math.max(end, other.end));
+            return new Range(Math.min(start, other.start), Math.max(end, other.end));
         }
 
         @Override

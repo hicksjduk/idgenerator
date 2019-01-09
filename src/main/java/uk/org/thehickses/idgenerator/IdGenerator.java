@@ -31,19 +31,19 @@ public class IdGenerator
         int answer;
         synchronized (freeRanges)
         {
-            LOG.debug("lastId = {}, freeRanges = {}", lastId, freeRanges);
+            LOG.debug("Allocating: lastId = {}, freeRanges = {}", lastId, freeRanges);
             if (freeRanges.isEmpty())
                 throw new IllegalStateException("All possible IDs are allocated");
+            int nextId = lastId + 1;
             Range range = Stream
-                    .of(freeRanges.tailSet(new Range(lastId + 1)), freeRanges)
+                    .of(freeRanges.tailSet(new Range(nextId)), freeRanges)
                     .filter(s -> !s.isEmpty())
                     .map(SortedSet::first)
                     .findFirst()
                     .get();
-            answer = lastId = range.start;
+            answer = lastId = range.contains(nextId) ? nextId : range.start;
             freeRanges.remove(range);
-            if (range.start != range.end)
-                freeRanges.add(new Range(range.start + 1, range.end));
+            range.splitAround(answer).forEach(freeRanges::add);
             LOG.debug("Allocated {}, freeRanges = {}", answer, freeRanges);
         }
         return answer;
@@ -58,6 +58,7 @@ public class IdGenerator
                 getter) -> set.isEmpty() ? null : getter.apply(set);
         synchronized (freeRanges)
         {
+            LOG.debug("Freeing {}, freeRanges = {}", id, freeRanges);
             Range[] neighbours = Stream
                     .of(getIfNotEmpty.apply(freeRanges.headSet(freedRange), SortedSet::last),
                             getIfNotEmpty.apply(freeRanges.tailSet(freedRange), SortedSet::first))
@@ -69,6 +70,7 @@ public class IdGenerator
                     (res, range) -> range.adjoins(res) ? range.merge(res) : res);
             Stream.of(neighbours).filter(newRange::overlaps).forEach(freeRanges::remove);
             freeRanges.add(newRange);
+            LOG.debug("Freed {}, freeRanges = {}", id, freeRanges);
         }
     }
 
@@ -111,6 +113,14 @@ public class IdGenerator
         public Range merge(Range other)
         {
             return new Range(Math.min(start, other.start), Math.max(end, other.end));
+        }
+
+        public Stream<Range> splitAround(int number)
+        {
+            if (!contains(number))
+                return Stream.empty();
+            return Stream.of(new Range(start, number - 1), new Range(number + 1, end)).filter(
+                    r -> r.start <= r.end);
         }
 
         @Override

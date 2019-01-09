@@ -17,12 +17,12 @@ public class IdGenerator
 
     private final Range supportedValues;
     private final SortedSet<Range> freeRanges = new TreeSet<>();
-    private int lastId;
+    private int nextId;
 
     public IdGenerator(int bound1, int bound2)
     {
         this.supportedValues = new Range(Math.min(bound1, bound2), Math.max(bound1, bound2));
-        this.lastId = supportedValues.start - 1;
+        this.nextId = supportedValues.start;
         freeRanges.add(supportedValues);
     }
 
@@ -31,17 +31,16 @@ public class IdGenerator
         int answer;
         synchronized (freeRanges)
         {
-            LOG.debug("Allocating: lastId = {}, freeRanges = {}", lastId, freeRanges);
+            LOG.debug("Allocating: nextId = {}, freeRanges = {}", nextId, freeRanges);
             if (freeRanges.isEmpty())
                 throw new IllegalStateException("All possible IDs are allocated");
-            int nextId = lastId + 1;
             Range range = Stream
                     .of(freeRanges.tailSet(new Range(nextId)), freeRanges)
                     .filter(s -> !s.isEmpty())
                     .map(SortedSet::first)
                     .findFirst()
                     .get();
-            answer = lastId = range.contains(nextId) ? nextId : range.start;
+            nextId = (answer = range.contains(nextId) ? nextId : range.start) + 1;
             freeRanges.remove(range);
             range.splitAround(answer).forEach(freeRanges::add);
             LOG.debug("Allocated {}, freeRanges = {}", answer, freeRanges);

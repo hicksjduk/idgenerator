@@ -28,6 +28,17 @@ public class IdGeneratorTest
         IdGenerator generator = new IdGenerator(Integer.MIN_VALUE, Integer.MAX_VALUE);
         expectAllocations(generator, Integer.MIN_VALUE);
     }
+    
+    @Test
+    public void testReallocationEdgeCase()
+    {
+    	IdGenerator generator = new IdGenerator(1, 5);
+    	expectAllocations(generator, IntStream.rangeClosed(1, 5).toArray());
+    	free(generator, 2);
+    	expectAllocations(generator, 2);
+    	free(generator, 1, 2, 3, 5);
+    	expectAllocations(generator, 3);
+    }
 
     private void expectAllocations(IdGenerator generator, int... expectedResults)
     {

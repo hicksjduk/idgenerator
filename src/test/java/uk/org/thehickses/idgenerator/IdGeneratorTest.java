@@ -21,23 +21,34 @@ public class IdGeneratorTest
         expectAllocations(generator, 4, 5, 1);
         expectExceptionOnAllocate(generator);
     }
-    
+
     @Test
     public void testMaximumRange()
     {
         IdGenerator generator = new IdGenerator(Integer.MIN_VALUE, Integer.MAX_VALUE);
         expectAllocations(generator, Integer.MIN_VALUE);
     }
-    
+
     @Test
-    public void testReallocationEdgeCase()
+    public void testReallocationEdgeCase1()
     {
-    	IdGenerator generator = new IdGenerator(1, 5);
-    	expectAllocations(generator, IntStream.rangeClosed(1, 5).toArray());
-    	free(generator, 2);
-    	expectAllocations(generator, 2);
-    	free(generator, 1, 2, 3, 5);
-    	expectAllocations(generator, 3);
+        IdGenerator generator = new IdGenerator(1, 5);
+        expectAllocations(generator, IntStream.rangeClosed(1, 5).toArray());
+        free(generator, 2);
+        expectAllocations(generator, 2);
+        free(generator, 1, 2, 3, 5);
+        expectAllocations(generator, 3);
+    }
+
+    @Test
+    public void testReallocationEdgeCase2()
+    {
+        IdGenerator generator = new IdGenerator(1, 5);
+        expectAllocations(generator, IntStream.rangeClosed(1, 5).toArray());
+        free(generator, 2);
+        expectAllocations(generator, 2);
+        free(generator, 1, 4);
+        expectAllocations(generator, 4);
     }
 
     private void expectAllocations(IdGenerator generator, int... expectedResults)

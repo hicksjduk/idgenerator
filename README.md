@@ -27,17 +27,17 @@ An ID is freed by passing it to the `free` method. If the ID passed to this meth
 ### Data structures
 The allocator maintains a list of those IDs that are free (eligible for allocation), in the form of a sorted set of `Range` objects. The `Range` class is an inner class of the `IdGenerator` class, which represents a range of contiguous numbers by holding the first and last values in that range. The allocator's set of free ranges contains as many `Range` objects as are necessary, which do not overlap and are stored in ascending order of their start values.
 
-The allocator also maintains a `nextId`, which is initially set to the lowest number in the range supported by the allocator, but after each allocation is updated to hold a number one more than the last allocated ID.
+The allocator also maintains a `nextId`, which is initially set to the lowest number in the range supported by the allocator, but which is updated after each allocation to hold a number one more than the last allocated ID.
 
 ### Allocation
 The process followed to allocate an ID is:
 * If the list of free ranges is empty, throw an `IllegalStateException`.
 * Determine the range in the list of free ranges from which the allocation should be made:
-    * If the range that immediately precedes the current value of `nextId` (that is, the range with the highest start point that is less than that value) includes `nextId`, select that range.
+    * If there is a range that immediately precedes the current value of `nextId` (that is, the range with the highest start point that is less than that value) and which includes `nextId`, select that range.
     * Otherwise, if there is a range that immediately follows the current value of `nextId` (that is, the range with the lowest start point that is not less than that value), select that range.
     * Otherwise, select the first range in the list of free ranges. 
-* If the range selected in the previous step contains the value of `nextId`, allocate `nextId`, otherwise allocate the first value in the range.
-* Replace the selected range in the free ranges list with up to two ranges: one containing all the IDs in the range that precede the allocated value (if there are any), and one containing all the IDs in the range that follow the allocated value (if there are any).
+* If the range selected in the previous step contains the value of `nextId`, allocate `nextId`, otherwise allocate the lowest value in the range.
+* Replace the selected range in the free ranges list with up to two ranges: one containing all the IDs in the range that precede the allocated value (if there are any), and one containing all the IDs in the range that follow the allocated value (if there are any). Note that if the selected range contains only the allocated value, the effect of this is simply to delete the range.
 
 ### Deallocation
 The process followed to free (deallocate) an ID is:

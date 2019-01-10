@@ -14,7 +14,7 @@ to the start of the range).
 
 ### Construction
 A new generator is created by specifying the (inclusive) bounds of the range of identifiers to be managed by
-the generator. It is not necessary to specify the bounds in any particular order; so `new IDGenerator(0, 100)` and `new IDGenerator(100, 0)` are entirely equivalent. The generator will never generate an ID that is less than the smaller bound, or more than the greater bound.
+the generator. It is not necessary to specify the bounds in any particular order; so `new IdGenerator(0, 100)` and `new IdGenerator(100, 0)` are entirely equivalent. The generator will never generate an ID that is less than the smaller bound, or more than the greater bound.
 
 ### Allocation
 The `allocateId` method is called to allocate an ID. If all the IDs managed by the generator are allocated, an `IllegalStateException` is thrown; otherwise, an ID is allocated, according to the rules shown above, and returned.

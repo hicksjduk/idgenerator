@@ -10,6 +10,14 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A generator of unique integer IDs.
+ * 
+ * When requested to allocate an ID, this object allocates the smallest free ID which is larger than the last one
+ * allocated, or failing that the smallest free ID. It also frees IDs on request.
+ * 
+ * @author Jeremy Hicks
+ */
 public class IdGenerator
 {
     private static Logger LOG = LoggerFactory.getLogger(IdGenerator.class);
@@ -18,6 +26,16 @@ public class IdGenerator
     private final SortedSet<Range> freeRanges = new TreeSet<>();
     private int nextId;
 
+    /**
+     * Initialises the generator with a range of supported IDs that is between the specified bounds (inclusive). The
+     * bounds need not be specified in any particular order. The generator will never generate an ID which is smaller
+     * than the smaller bound, or greater than the greater bound.
+     * 
+     * @param bound1
+     *            the first bound.
+     * @param bound2
+     *            the second bound.
+     */
     public IdGenerator(int bound1, int bound2)
     {
         this.supportedValues = new Range(Math.min(bound1, bound2), Math.max(bound1, bound2));
@@ -25,6 +43,13 @@ public class IdGenerator
         freeRanges.add(supportedValues);
     }
 
+    /**
+     * Allocates an ID, if one is available.
+     * 
+     * @return the allocated ID.
+     * @throws IllegalStateException
+     *             if all IDs are currently allocated.
+     */
     public int allocateId() throws IllegalStateException
     {
         int answer;
@@ -49,6 +74,12 @@ public class IdGenerator
         return answer;
     }
 
+    /**
+     * Frees the specified ID, if it is within the range of supported values and is currently allocated.
+     * 
+     * @param id
+     *            the ID.
+     */
     public void freeId(int id)
     {
         if (!supportedValues.contains(id))
@@ -64,8 +95,7 @@ public class IdGenerator
                     .toArray(Range[]::new);
             if (Stream.of(neighbours).anyMatch(r -> r.contains(id)))
                 return;
-            Range newRange = Stream.of(neighbours).reduce(freedRange,
-                    (res, range) -> range.adjoins(res) ? range.merge(res) : res);
+            Range newRange = Stream.of(neighbours).reduce(freedRange, Range::mergeIfAdjacent);
             Stream.of(neighbours).filter(newRange::overlaps).forEach(freeRanges::remove);
             freeRanges.add(newRange);
             LOG.debug("Freed {}, freeRanges = {}", id, freeRanges);
@@ -113,9 +143,10 @@ public class IdGenerator
             return start - other.end == 1 || other.start - end == 1;
         }
 
-        public Range merge(Range other)
+        public Range mergeIfAdjacent(Range other)
         {
-            return new Range(Math.min(start, other.start), Math.max(end, other.end));
+            return !adjoins(other) ? this
+                    : new Range(Math.min(start, other.start), Math.max(end, other.end));
         }
 
         public Stream<Range> splitAround(int number)

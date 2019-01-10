@@ -20,7 +20,7 @@ the generator. It is not necessary to specify the bounds in any particular order
 The `allocateId` method is called to allocate an ID. If all the IDs managed by the generator are allocated, an `IllegalStateException` is thrown; otherwise, an ID is allocated, according to the rules shown above, and returned.
 
 ### Deallocation
-An ID is freed by passing it to the `free` method. If the ID passed to this method is outside the bounds supported by the allocator, is already free, the method has no effect; otherwise, the specified ID is freed and becomes eligible for reallocation.
+An ID is freed by passing it to the `free` method. If the ID passed to this method is outside the bounds supported by the allocator, or is already free, the method has no effect; otherwise, the specified ID is freed and becomes eligible for reallocation.
 
 ## Implementation details
 

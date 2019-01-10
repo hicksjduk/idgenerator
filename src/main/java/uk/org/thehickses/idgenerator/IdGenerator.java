@@ -58,11 +58,7 @@ public class IdGenerator
             LOG.debug("Allocating: nextId = {}, freeRanges = {}", nextId, freeRanges);
             if (freeRanges.isEmpty())
                 throw new IllegalStateException("All possible IDs are allocated");
-            Range nextRange = new Range(nextId);
-            Range range = Stream
-                    .of(getIfNotEmpty(freeRanges.headSet(nextRange), SortedSet::last),
-                            getIfNotEmpty(freeRanges.tailSet(nextRange), SortedSet::first))
-                    .filter(Objects::nonNull)
+            Range range = neighbouringFreeRanges(nextId)
                     .filter(r -> r.contains(nextId) || r.start > nextId)
                     .findFirst()
                     .orElse(freeRanges.first());
@@ -84,22 +80,26 @@ public class IdGenerator
     {
         if (!supportedValues.contains(id))
             return;
-        Range freedRange = new Range(id);
         synchronized (freeRanges)
         {
             LOG.debug("Freeing {}, freeRanges = {}", id, freeRanges);
-            Range[] neighbours = Stream
-                    .of(getIfNotEmpty(freeRanges.headSet(freedRange), SortedSet::last),
-                            getIfNotEmpty(freeRanges.tailSet(freedRange), SortedSet::first))
-                    .filter(Objects::nonNull)
-                    .toArray(Range[]::new);
+            Range[] neighbours = neighbouringFreeRanges(id).toArray(Range[]::new);
             if (Stream.of(neighbours).anyMatch(r -> r.contains(id)))
                 return;
-            Range newRange = Stream.of(neighbours).reduce(freedRange, Range::mergeIfAdjacent);
+            Range newRange = Stream.of(neighbours).reduce(new Range(id), Range::mergeIfAdjacent);
             Stream.of(neighbours).filter(newRange::overlaps).forEach(freeRanges::remove);
             freeRanges.add(newRange);
             LOG.debug("Freed {}, freeRanges = {}", id, freeRanges);
         }
+    }
+
+    private Stream<Range> neighbouringFreeRanges(int id)
+    {
+        Range searchRange = new Range(id);
+        return Stream
+                .of(getIfNotEmpty(freeRanges.headSet(searchRange), SortedSet::last),
+                        getIfNotEmpty(freeRanges.tailSet(searchRange), SortedSet::first))
+                .filter(Objects::nonNull);
     }
 
     private Range getIfNotEmpty(SortedSet<Range> set, Function<SortedSet<Range>, Range> getter)

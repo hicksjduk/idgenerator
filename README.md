@@ -25,7 +25,7 @@ An ID is freed by passing it to the `free` method. If the ID passed to this meth
 ## Implementation details
 
 ### Data structures
-The allocator maintains a list of those IDs that are free (eligible for allocation), in the form of a sorted set of `Range` objects. The `Range` class is an inner class of the `IdGenerator` class, which represents a range of contiguous numbers by holding the first and last values in that range. The allocator's set of free ranges contains as many `Range` objects as are necessary, ensuring that they do not overlap and are stored in ascending order of their start values.
+The allocator maintains a list of those IDs that are free (eligible for allocation), in the form of a sorted set of `Range` objects. The `Range` class is an inner class of the `IdGenerator` class, which represents a range of contiguous numbers by holding the first and last values in that range. The allocator's set of free ranges contains as many `Range` objects as are necessary, which do not overlap and are stored in ascending order of their start values.
 
 The allocator also maintains a `nextId`, which is initially set to the lowest number in the range supported by the allocator, but after each allocation is updated to hold a number one more than the last allocated ID.
 
